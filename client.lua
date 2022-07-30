@@ -1,4 +1,3 @@
---local PlayerData = Framework.GetPlayerData()
 local config = Config
 local speedMultiplier = config.UseMPH and 2.23694 or 3.6
 local seatbeltOn = false
@@ -26,6 +25,7 @@ local showSquareB = false
 local Menu = config.Menu
 local CinematicHeight = 0.2
 local w = 0
+local isFrameworkHudShowing
 
 DisplayRadar(false)
 
@@ -94,12 +94,12 @@ AddEventHandler('JLRP-Framework:playerLoaded', function(xPlayer, isNew, skin)
 	Wait(2000)
     local hudSettings = GetResourceKvpString('hudSettings')
     if hudSettings then loadSettings(json.decode(hudSettings)) end
-    PlayerData = Framework.GetPlayerData()
+	
+	isFrameworkHudShowing = Framework.UI.HUD.IsShowing()
 end)
 
 RegisterNetEvent('JLRP-Framework:onPlayerLogout')
 AddEventHandler('JLRP-Framework:onPlayerLogout', function()
-	PlayerData = {}
 end)
 
 AddEventHandler('onResourceStart', function(resourceName)
@@ -107,6 +107,8 @@ AddEventHandler('onResourceStart', function(resourceName)
     Wait(2000)
     local hudSettings = GetResourceKvpString('hudSettings')
     if hudSettings then loadSettings(json.decode(hudSettings)) end
+	
+	if Framework.IsPlayerLoaded() then isFrameworkHudShowing = Framework.UI.HUD.IsShowing() end
 end)
 
 -- Callbacks & Events
@@ -534,7 +536,10 @@ RegisterNUICallback('cinematicMode', function(_, cb)
         DisplayRadar(1)
 		--SetTimecycleModifier("default")
 		if Framework.GetConfig().EnableHud then
-			Framework.UI.HUD.SetDisplay(1.0)
+			isFrameworkHudShowing = Framework.UI.HUD.IsShowing()
+			if isFrameworkHudShowing then
+				Framework.UI.HUD.SetDisplay(1.0)
+			end
 		end
     else
         CinematicShow(true)
@@ -544,7 +549,10 @@ RegisterNUICallback('cinematicMode', function(_, cb)
         end
 		--SetTimecycleModifier("cinema")
 		if Framework.GetConfig().EnableHud then
-			Framework.UI.HUD.SetDisplay(0.0)
+			if isFrameworkHudShowing then
+				isFrameworkHudShowing = false
+				Framework.UI.HUD.SetDisplay(0.0)
+			end
 		end
     end
     TriggerEvent("JLRP-Hud:Client:playHudChecklistSound")
@@ -560,13 +568,11 @@ RegisterNetEvent('JLRP-Hud:Client:ToggleAirHud', function()
     showAltitude = not showAltitude
 end)
 
-RegisterNetEvent('JLRP-Hud:Client:UpdateNeeds', function(newHunger, newThirst) -- Triggered in qb-core
-    hunger = newHunger
-    thirst = newThirst
-end)
-
-RegisterNetEvent('JLRP-Hud:Client:UpdateStress', function(newStress) -- Add this event with adding stress elsewhere
-    stress = newStress
+RegisterNetEvent("JLRP-Framework:updateStatus")
+AddEventHandler("JLRP-Framework:updateStatus", function(newHunger, newThirst, newStress, newDrunk) -- Triggered in JLRP-Framework
+	if newHunger ~= nil then hunger = newHunger end
+	if newThirst ~= nil then thirst = newThirst end
+	if newStress ~= nil then stress = newStress end
 end)
 
 RegisterNetEvent('JLRP-Hud:Client:ToggleShowSeatbelt', function()
@@ -944,7 +950,8 @@ CreateThread(function() -- Speeding
                     stressSpeed = seatbeltOn and config.MinimumSpeed or config.MinimumSpeedUnbuckled
                 end
                 if speed >= stressSpeed then
-                    TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                    TriggerServerEvent('JLRP-Framework:addStress', math.random(1, 5))
+					Framework.ShowNotification(_U('stress_gain'), 'error', 1500)
                     Wait(15000)
                 end
             end
@@ -971,7 +978,8 @@ CreateThread(function() -- Shooting
 		if weapon ~= `WEAPON_UNARMED` then
 			if IsPedShooting(ped) and not IsWhitelistedWeaponStress(weapon) then
 				if math.random() < config.StressChance then
-					TriggerServerEvent('JLRP-Hud:Server:GainStress', math.random(1, 3))
+					TriggerServerEvent('JLRP-Framework:addStress', math.random(1, 3))
+					Framework.ShowNotification(_U('stress_gain'), 'error', 1500)
 					Wait(2000)
 				end
 			end

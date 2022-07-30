@@ -2,7 +2,7 @@ Config = {}
 Config.Locale = 'en'
 
 Config.OpenMenu = 'I' -- https://docs.fivem.net/docs/game-references/input-mapper-parameter-ids/keyboard/
-Config.StressChance = 0.1 -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
+Config.StressChance = 0.5 -- Default: 10% -- Percentage Stress Chance When Shooting (0-1)
 Config.UseMPH = false -- If true speed math will be done as MPH, if false KPH will be used (YOU HAVE TO CHANGE CONTENT IN STYLES.CSS TO DISPLAY THE CORRECT TEXT)
 Config.MinimumStress = 60 -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 80 -- Going Over This Speed Will Cause Stress
