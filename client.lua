@@ -570,6 +570,7 @@ end)
 
 RegisterNetEvent("JLRP-Framework:updateStatus")
 AddEventHandler("JLRP-Framework:updateStatus", function(newHunger, newThirst, newStress, newDrunk) -- Triggered in JLRP-Framework
+	--print(tostring(newHunger), tostring(newThirst), tostring(newStress), tostring(newDrunk))
 	if newHunger ~= nil then hunger = newHunger end
 	if newThirst ~= nil then thirst = newThirst end
 	if newStress ~= nil then stress = newStress end
@@ -722,7 +723,7 @@ end)
 -- HUD Update loop
 
 CreateThread(function()
-	while not Framework.IsPlayerLoaded() do SendNUIMessage({ action = 'hudtick', show = false }) Wait(1000) end
+	while not Framework.IsPlayerLoaded() or not Framework.PlayerData.metadata do SendNUIMessage({ action = 'hudtick', show = false }) Wait(1000) end
 
     local wasInVehicle = false
     while true do
@@ -775,12 +776,12 @@ CreateThread(function()
                 Menu.isDynamicOxygenChecked,
                 Menu.isDynamicEngineChecked,
                 Menu.isDynamicNitroChecked,
-                GetEntityHealth(player) - 100,
+                ((GetEntityHealth(player) - 100) * 100) / (GetEntityMaxHealth(player) - 100),
                 playerDead,
                 GetPedArmour(player),
-                thirst,
-                hunger,
-                stress,
+                Framework.PlayerData.metadata.thirst,
+                Framework.PlayerData.metadata.hunger,
+                Framework.PlayerData.metadata.stress,
                 voice,
                 LocalPlayer.state['radioChannel'],
                 talking,
@@ -818,12 +819,12 @@ CreateThread(function()
                     Menu.isDynamicOxygenChecked,
                     Menu.isDynamicEngineChecked,
                     Menu.isDynamicNitroChecked,
-                    GetEntityHealth(player) - 100,
+                    ((GetEntityHealth(player) - 100) * 100) / (GetEntityMaxHealth(player) - 100),
                     playerDead,
                     GetPedArmour(player),
-                    thirst,
-                    hunger,
-                    stress,
+					Framework.PlayerData.metadata.thirst,
+					Framework.PlayerData.metadata.hunger,
+					Framework.PlayerData.metadata.stress,
                     voice,
                     LocalPlayer.state['radioChannel'],
                     talking,
